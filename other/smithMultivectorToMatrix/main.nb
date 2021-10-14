@@ -1,48 +1,62 @@
-smithMultivectorToMatrix[{w_, s_}, d_ : Null] := If[
-  s == 0,
-  {Table[0, d]},
-  If[
-    s < 0,
-    smithMultimapToMapping[{w, s}],
-    Module[{m, dualV},
-      dualV = veaDual[{w, s}];
-      m = If[dualV == {{1}, 0}, {Table[0, Abs[s]]}, smithMultimapToMapping[dualV]];
-
-      dual[m]
+smithMultivectorToMatrix[w_] := Module[{grade, t},
+  grade = getGrade[w];
+  t = If[
+    grade == 0,
+    nilovectorToMatrix[w],
+    If[
+      grade == 1,
+      monovectorToMatrix[w],
+      If[
+        veaIsContra[w],
+        smithMulticommaToCommaBasis[w],
+        smithMultimapToMapping[w],
+      ]
     ]
-  ]
+  ];
+
+  If[t === Error, Error, canonicalForm[t]]
 ];
 
-smithMultimapToMapping[{w_, s_}] := Module[{r, d, c, b, indexedW, colIndices, bigMatrix},
-  r = -s;
-  d = veaGetD[{w, s}];
+smithMultimapToMapping[w_] := Module[{minors, grade, d, genesC, genesB, indexedMinors, colIndices, bigMatrix},
+  minors = getMinors[w];
+  grade = getGrade[w];
+  d = veaGetD[w];
 
-  c = veaIndices[d, r - 1];
-  b = veaIndices[d, r];
+  genesC = veaIndices[d, grade - 1];
+  genesB = veaIndices[d, grade];
 
-  indexedW = Association[];
-  MapThread[(indexedW[#1] = #2)&, {b, w}];
+  indexedMinors = Association[];
+  MapThread[(indexedMinors[#1] = #2)&, {genesB, minors}];
 
   colIndices = Range[d];
 
-  bigMatrix = hnf[Map[findRowForElOfC[#, indexedW, colIndices]&, c]];
+  bigMatrix = hnf[Map[findRowForElOfC[#, indexedMinors, colIndices]&, genesC]];
 
   If[
-    MatrixRank[bigMatrix] != r,
+    MatrixRank[bigMatrix] != grade,
     Error,
-    canonicalForm[Take[bigMatrix, r]]
+    {Take[bigMatrix, grade], "co"}
   ]
 ];
 
+smithMulticommaToCommaBasis[w_] := Module[{grade, dualW, dualGrade, t},
+  grade = getGrade[w];
+  dualW = veaDual[w];
+  dualGrade = getGrade[dualW];
+  t = If[dualGrade == 0, {{Table[0, grade]}, "co"}, smithMultimapToMapping[dualW]];
 
-findRowForElOfC[cEl_, indexedW_, colIndices_] := Module[{appendedUnsortedIndices, signsAndSortedIndices, signs, sortedIndices, minors},
-  appendedUnsortedIndices = Map[Join[cEl, {#}]&, colIndices];
+  dual[t]
+];
+
+
+findRowForElOfC[genesCEl_, indexedMinors_, colIndices_] := Module[{appendedUnsortedIndices, signsAndSortedIndices, signs, sortedIndices, minors},
+  appendedUnsortedIndices = Map[Join[genesCEl, {#}]&, colIndices];
 
   signsAndSortedIndices = Map[findSignsAndSortedIndices, appendedUnsortedIndices];
   signs = Map[First, signsAndSortedIndices];
   sortedIndices = Map[Last, signsAndSortedIndices];
 
-  minors = Map[indexedW[#]&, sortedIndices];
+  minors = Map[indexedMinors[#]&, sortedIndices];
 
   MapThread[Times, {minors, signs}]
 ];
@@ -82,37 +96,3 @@ sortIndicesAndCountSwaps[inputUnsortedIndices_] := Module[{swapCount, indices},
 
   {indices, swapCount}
 ];
-
-
-smithMultivectorToMatrix[{{1, 2, -2, -5}, -3}] == {{1, 0, 0, -5}, {0, 1, 0, 2}, {0, 0, 1, 2}}
-smithMultivectorToMatrix[{{1, 4, 4}, -2}] == {{1, 0, -4}, {0, 1, 4}}
-smithMultivectorToMatrix[{{4, -4, 1}, 1}] == {{4}, {-4}, {1}}
-smithMultivectorToMatrix[{{1}, -3}] == {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}}
-smithMultivectorToMatrix[{{1}, 3}] == {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}}
-smithMultivectorToMatrix[{{1}, 0}, 2] == {{0, 0}}
-smithMultivectorToMatrix[{{1, 0, 1}, -2}] == {{1, 0, -1}, {0, 1, 0}}
-smithMultivectorToMatrix[{{2, 2, 7, 7}, -1}] == {{2, 2, 7, 7}}
-smithMultivectorToMatrix[{{1}, 1}] == {{1}}
-
-Do[
-  aAndV = randomMatrixAndMultivector[];
-  a = First[aAndV];
-  v = Last[aAndV];
-  w = First[v];
-  s = Last[v];
-
-  tensorFlattenedA = If[
-    s == 0,
-    multivectorToMatrix[{w, s}, getD[a] * If[isContra[a], -1, 1]],
-    multivectorToMatrix[{w, s}]
-  ];
-  smithA = If[
-    s == 0,
-    smithMultivectorToMatrix[{w, s}, getD[a] * If[isContra[a], -1, 1]],
-    smithMultivectorToMatrix[{w, s}]
-  ];
-
-  If[tensorFlattenedA != smithA, Print["BAD BAD BAD! multivector: ", v, " tensor-flattened A: ", tensorFlattenedA, " Smith's A: ", smithA], "good"],
-  100
-];
-Print["done"];
