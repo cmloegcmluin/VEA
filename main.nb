@@ -169,8 +169,8 @@ multivectorToMatrix[w_] := Module[{grade, t},
       monovectorToMatrix[w],
       If[
         veaIsContra[w],
-        contravariantMultivectorToCommaBasis[w],
-        covariantMultivectorToMapping[w]
+        multicommaToCommaBasis[w],
+        multimapToMapping[w]
       ]
     ]
   ];
@@ -359,7 +359,7 @@ nilovectorToMatrix[{minors_, grade_, v_, d_}] := {{Table[0, d]}, v};
 
 monovectorToMatrix[w_] := {{getMinors[w]}, veaGetV[w]};
 
-covariantMultivectorToMapping[w_] := Module[{grade, flattenedTensorMatrix},
+multimapToMapping[w_] := Module[{grade, flattenedTensorMatrix},
   grade = getGrade[w];
   flattenedTensorMatrix = hnf[Flatten[multivectorToTensor[w], grade - 2]];
 
@@ -370,7 +370,7 @@ covariantMultivectorToMapping[w_] := Module[{grade, flattenedTensorMatrix},
   ]
 ];
 
-contravariantMultivectorToCommaBasis[w_] := Module[{grade, flattenedTensorMatrix},
+multicommaToCommaBasis[w_] := Module[{grade, flattenedTensorMatrix},
   grade = getGrade[w];
   flattenedTensorMatrix = hnf[reverseEachRow[Flatten[multivectorToTensor[w], grade - 2]]];
 
