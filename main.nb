@@ -205,6 +205,74 @@ matrixToMultivector[t_] := veaCanonicalForm[
 
 (* MEET AND JOIN *)
 
+(*
+
+progressiveProduct[multivector1, multivector2]
+
+Given two multivectors, returns the multivector result for their progressive product.
+
+Works for any two multimaps, or any two multicommas, but multimaps and multicommas cannot be mixed.
+
+Also known as the wedge product or the exterior product.
+
+In    et5 = {{5, 8, 12}, 1, "co"};
+      et7 = {{7, 11, 16}, 1, "co"};
+      progressiveProduct[et5, et7]
+
+Out   {{1, 4, 4}, 2, "co"}
+
+*)
+progressiveProduct[w1_, w2_] := If[
+  isContra[w1],
+  matrixToMultivector[meet[{multivectorToMatrix[w1], multivectorToMatrix[w2]}]],
+  matrixToMultivector[join[{multivectorToMatrix[w1], multivectorToMatrix[w2]}]],
+];
+
+(*
+
+regressiveProduct[multivector1, multivector2]
+
+Given two multivectors, returns the multivector result for their regressive product.
+
+Works for any two multimaps, or any two multicommas, but multimaps and multicommas cannot be mixed.
+
+Also known as the vee product.
+
+In    et5 = {{5, 8, 12}, 1, "co"};
+      et7 = {{7, 11, 16}, 1, "co"};
+      regressiveProduct[et5, et7]
+
+Out   {{1, 4, 4}, 2, "co"}
+
+*)
+regressiveProduct[w1_, w2_] := veaDual[progressiveProduct[veaDual[w1], veaDual[w2]]];
+
+(*
+
+interiorProduct[multivector1, multivector2]
+
+Given two multivectors, returns the multivector result for their symmetric interior product.
+By symmetric, it is meant that it chooses either the right or left interior product
+depending on the grades of the input multivectors.
+
+Must be given two multi
+
+Also known as the vee product.
+
+In    et5 = {{5, 8, 12}, 1, "co"};
+      et7 = {{7, 11, 16}, 1, "co"};
+      regressiveProduct[et5, et7]
+
+Out   {{1, 4, 4}, 2, "co"}
+
+*)
+interiorProduct[w1_, w2_] := If[
+  getGrade[w1] >= getGrade[w2],
+  rightInteriorProduct[w1, w2],
+  leftInteriorProduct[w1, w2]
+];
+
+
 
 
 (* ___ PRIVATE ___ *)
@@ -344,7 +412,7 @@ multivectorToTensor[w_] := Module[{d, grade, minors},
   ]
 ];
 
-tensorToMultivector[tensor_, grade_, v_, d_] := Module[{assoc, signTweak},
+tensorToMultivector[tensor_, grade_, v_, d_] := Module[{assoc, signTweak, minors},
   assoc = Association[SymmetrizedArrayRules[tensor]];
   signTweak = If[veaIsCo[{{}, v, grade, d}] && Mod[grade(d - grade), 2] == 1, -1, 1];
   minors = signTweak * Map[If[KeyExistsQ[assoc, #], assoc[#], 0]&, veaIndices[d, grade]];
@@ -385,3 +453,6 @@ minorsList[a_] := extractGcd[First[Minors[a, MatrixRank[a]]]];
 
 
 (* MEET AND JOIN *)
+
+rightInteriorProduct[w1_, w2_] := veaDual[progressiveProduct[veaDual[w1], w2]];
+leftInteriorProduct[w1_, w2_] := veaDual[progressiveProduct[w1, veaDual[w2]]];
