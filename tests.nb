@@ -86,8 +86,8 @@ Do[
 (* CONVERSION TO AND FROM MATRIX *)
 
 (* multivectorToMatrix *)
-test[multivectorToMatrix, {{1}, 0, "contra", 1}, {{0}, "contra"}];
-test[multivectorToMatrix, {{1}, 0, "co", 1}, {{0}, "co"}];
+test[multivectorToMatrix, {{1}, 0, "contra", 1}, {{{0}}, "contra"}];
+test[multivectorToMatrix, {{1}, 0, "co", 1}, {{{0}}, "co"}];
 test[multivectorToMatrix, {{1}, 0, "contra", 3}, {{{0, 0, 0}}, "contra"}];
 test[multivectorToMatrix, {{1}, 0, "co", 3}, {{{0, 0, 0}}, "co"}];
 test[multivectorToMatrix, {{2, -4, 8, -9, 7, 2}, 2, "co"}, Error];
@@ -236,6 +236,7 @@ d2jico = {{1}, 2, "co"};
 (* d=3, multimaps *)
 d3g1co1 = {{12, 19, 28}, 1, "co"};
 d3g1co2 = {{19, 30, 44}, 1, "co"};
+d3g1co3 = {{22, 35, 51}, 1, "co"};
 d3g2co1 = {{1, 4, 4}, 2, "co"};
 d3g2co2 = {{3, 5, 1}, 2, "co"};
 d3jico = {{1}, 3, "co"};
@@ -244,13 +245,17 @@ d3unisonco = {{1}, 0, "co", 3};
 (* d=3, multicommas *)
 d3g1contra1 = {{4, -4, 1}, 1, "contra"};
 d3g1contra2 = {{-10, -1, 5}, 1, "contra"};
+d3g1contra3 = {{1, -5, 3}, 1, "contra"};
 d3g2contra1 = {{44, -30, 19}, 2, "contra"};
 d3g2contra2 = {{28, -19, 12}, 2, "contra"};
+d3g2contra3 = {{51, -35, 22}, 2, "contra"};
+d5g3contra = {{19, -33, 14, -46, 46, -46, 29, -29, 29, 0}, 3, "contra"};
 d3jicontra = {{1}, 0, "contra", 3};
 d3unisoncontra = {{1}, 3, "contra"};
 
 (* d=5, multimaps *)
-d5g2co1 = {{-9, -5, 3, -7, 13, 30, 20, 21, 1, -30}, 2, "co"} ; (*progressiveProduct[{{15, 24, 35, 42, 52}, 1, "co"}, {{16, 25, 37, 45, 55}, 1, "co"}];*)
+d5g1co = {{31, 49, 72, 87, 107}, 1, "co"};
+d5g2co1 = {{-9, -5, 3, -7, 13, 30, 20, 21, 1, -30}, 2, "co"}; (*progressiveProduct[{{15, 24, 35, 42, 52}, 1, "co"}, {{16, 25, 37, 45, 55}, 1, "co"}];*)
 d5g2co2 = {{1, 4, -2, -6, 4, -6, -13, -16, -28, -10}, 2, "co"}; (* progressiveProduct[{{12, 19, 28, 34, 42}, 1, "co"}, {{17, 27, 40, 48, 59}, 1, "co"}]; *)
 d5g2co3 = {{6, -7, -2, 15, -25, -20, 3, 15, 59, 49}, 2, "co"}; (*example from interior product page *)
 d5g3co = {{1, 2, -3, -2, 1, -4, -5, 12, 9, -19}, 3, "co"};(*example from interior product page *)
@@ -259,46 +264,76 @@ d5unisonco = {{1}, 0, "co", 5};
 
 (* d=5, multicommas *)
 d5g1contra = {{-3, 2, -1, 2, -1}, 1, "contra"};
+d5g2contra = {{5, 11, -7, -4, -9, 8, 1, 5, -5, 5}, 2, "contra"};
 d5jicontra = {{1}, 0, "contra", 5};
 
 (* super basic progressive product example *)
-progressiveProduct[d2g1co1, d2g1co2] == d2jico
+test2args[progressiveProduct, d2g1co1, d2g1co2, d2jico];
 
 (* wedging with oneself equals oneself *)
-progressiveProduct[d3g1co1, d3g1co1] == d3g1co1
+test2args[progressiveProduct, d3g1co1, d3g1co1, d3g1co1];
 
 (* another basic progressive product example *)
-progressiveProduct[d5g2co1, d5g2co2] == d5g4co
-(* show how progressive product can cap out at the dimensionality for multicommas *)
-progressiveProduct[d3g2contra1, d3g2contra2] == d3unisoncontra
-(* show how progressive product can cap out at the dimensionality for multimaps*)
-progressiveProduct[d3g2co1, d3g2co2] == d3jico
-(* TODO: examples both exactly at 0 and exceeding it, just in case *)
+test2args[progressiveProduct, d5g2co1, d5g2co2, d5g4co];
+(* show how progressive product can cap out when grade exactly hits the dimensionality, for multicommas *)
+test2args[progressiveProduct, d3g2contra1, d3g1contra3, d3unisoncontra];
+(* show how progressive product can cap out when grade exceeds at the dimensionality, for multicommas *)
+test2args[progressiveProduct, d3g2contra1, d3g2contra2, d3unisoncontra];
+(* show how progressive product can cap out when grade exactly hits the dimensionality, for multimaps*)
+test2args[progressiveProduct, d3g2co1, d3g1co3, d3jico];
+(* show how progressive product can cap out when grade exceeds the dimensionality, for multimaps*)
+test2args[progressiveProduct, d3g2co1, d3g2co2, d3jico];
 
 (* a basic regressive product example *)
-regressiveProduct[d3g2contra1, d3g2contra2] == d3g1contra1
-(* show how regressive product can cap out at grade-0 for multicommas *)
-regressiveProduct[d3g1contra1, d3g1contra2] == d3jicontra
-(* show how regressive product can cap out at grade-0 for multimaps*)
-regressiveProduct[d3g1co1, d3g1co2] == d3unisonco
-(* TODO: examples both exactly at 0 and exceeding it, just in case *)
+test2args[regressiveProduct, d3g2contra1, d3g2contra2, d3g1contra1];
+(* show how regressive product can cap out when grade hits exactly 0, for multicommas *)
+test2args[regressiveProduct, d3g1contra1, d3g2contra3, d3jicontra];
+(* show how regressive product can cap out when grade goes below 0, for multicommas *)
+test2args[regressiveProduct, d3g1contra1, d3g1contra2, d3jicontra];
+(* show how regressive product can cap out when grade hits exactly 0, for multimaps *)
+test2args[regressiveProduct, d3g1co1, d3g2co2, d3unisonco];
+(* show how regressive product can cap out when grade goes below 0, for multimaps*)
+test2args[regressiveProduct, d3g1co1, d3g1co2, d3unisonco];
 
 (* a series of examples working up to the symmetric interior product *)
 
-rightInteriorProduct[d5g1contra, d5g3co] == d5jicontra
-rightInteriorProduct[d5g3co, d5g1contra] == d5g2co3
+test2args[rightInteriorProduct, d5g1contra, d5g3co, d5jicontra];
+test2args[rightInteriorProduct, d5g3co, d5g1contra, d5g2co3];
 
-leftInteriorProduct[d5g1contra, d5g3co] == d5g2co3
-leftInteriorProduct[d5g3co, d5g1contra] == d5jicontra
+test2args[leftInteriorProduct, d5g1contra, d5g3co, d5g2co3];
+test2args[leftInteriorProduct, d5g3co, d5g1contra, d5jicontra];
 
-interiorProduct[d5g1contra, d5g3co] == d5g2co3
-interiorProduct[d5g3co, d5g1contra] == d5g2co3
+test2args[interiorProduct, d5g1contra, d5g3co, d5g2co3];
+test2args[interiorProduct, d5g3co, d5g1contra, d5g2co3];
 
-(*TODO: similar series of examples but with grade of contra > grade of co *)
+(* a similar series of examples but with grade of contra > grade of co *)
 
-(*TODO: tests where you give interior product two multimaps or two multicommas *)
+test2args[rightInteriorProduct, d5g1co, d5g3contra, d5unisonco];
+test2args[rightInteriorProduct, d5g3contra, d5g1co, d5g2contra ];
 
-Print["same examples as for meet and join"];
+test2args[leftInteriorProduct, d5g1co, d5g3contra, d5g2contra];
+test2args[leftInteriorProduct, d5g3contra, d5g1co, d5unisonco];
+
+test2args[interiorProduct, d5g1co, d5g3contra, d5g2contra];
+test2args[interiorProduct, d5g3contra, d5g1co, d5g2contra];
+
+(* progressive product errors if it gets mixed variance *)
+test2args[progressiveProduct, d5g1contra, d5g3co, Error];
+
+(* regressive product errors if it gets mixed variance *)
+test2args[regressiveProduct, d5g1contra, d5g3co, Error];
+
+(* interior product errors if it gets two multimaps *)
+test2args[rightInteriorProduct, d5g2co1, d5g2co2, Error];
+test2args[leftInteriorProduct, d5g2co1, d5g2co2, Error];
+test2args[interiorProduct, d5g2co1, d5g2co2, Error];
+
+(* interior product errors if it gets two multicommas *)
+test2args[rightInteriorProduct, d3g2contra1, d3g2contra2, Error];
+test2args[leftInteriorProduct, d3g2contra1, d3g2contra2, Error];
+test2args[interiorProduct, d3g2contra1, d3g2contra2, Error];
+
+(* same examples as for meet and join *)
 
 et5M5 = matrixToMultivector[{{{5, 8, 12}}, "co"}];
 et5C5 = matrixToMultivector[ {{{-8, 5, 0}, {-4, 1, 1}}, "contra"}];
@@ -311,10 +346,10 @@ porcupineC5 = matrixToMultivector[{{{1, -5, 3}}, "contra"}];
 d3unisoncontra = {{1}, 3, "contra"};
 d3jico = {{1}, 3, "co"};
 
-progressiveProduct[et5M5, et7M5] == meantoneM5
-progressiveProduct[et5C5, et7C5] == d3unisoncontra
-progressiveProduct[meantoneM5, porcupineM5] == d3jico
-progressiveProduct[meantoneC5, porcupineC5] == et7C5
+test2args[progressiveProduct, et5M5, et7M5, meantoneM5];
+test2args[progressiveProduct, et5C5, et7C5, d3unisoncontra];
+test2args[progressiveProduct, meantoneM5, porcupineM5, d3jico];
+test2args[progressiveProduct, meantoneC5, porcupineC5, et7C5];
 
 meantoneComma7 = {-4, 4, -1, 0};
 starlingComma7 = {1, 2, -3, 1};
@@ -377,51 +412,51 @@ marvelC7 = matrixToMultivector[{{marvelComma7}, "contra"}];
 (*⋎ = MEET, ⋏ = JOIN *)
 
 (*Meantone⋎Meanpop = [<31 49 72 87 107|] = 31, where "31" is the shorthand notation for the 31edo patent val.*)
-progressiveProduct[meantoneC11, meanpopC11] == et31C11
+test2args[progressiveProduct, meantoneC11, meanpopC11, et31C11];
 
 (*Meantone⋏Meanpop = [<1 0 -4 -13 0|, <0 1 4 10 0|, <0 0 0 0 1|] = <81/80, 126/125>*)
-progressiveProduct[meantoneM11, meanpopM11] == matrixToMultivector[{{{1, 0, -4, -13, 0}, {0, 1, 4, 10, 0}, {0, 0, 0, 0, 1}}, "co"}]
+test2args[progressiveProduct, meantoneM11, meanpopM11, matrixToMultivector[{{{1, 0, -4, -13, 0}, {0, 1, 4, 10, 0}, {0, 0, 0, 0, 1}}, "co"}]];
 
 (*Meantone⋎Marvel = 31*)
-progressiveProduct[meantoneC11, marvelC11] == et31C11
+test2args[progressiveProduct, meantoneC11, marvelC11, et31C11];
 
 (*Meantone⋏Marvel = <225/224>*)
-progressiveProduct[meantoneM11, marvelM11] == matrixToMultivector[dual[{{marvelComma11}, "contra"}]]
+test2args[progressiveProduct, meantoneM11, marvelM11, matrixToMultivector[dual[{{marvelComma11}, "contra"}]]];
 
 (*Meantone⋎Porcupine = G = <JI>*)
-progressiveProduct[meantoneC11, porcupineC11] == matrixToMultivector[{IdentityMatrix[5], "contra"}]
+test2args[progressiveProduct, meantoneC11, porcupineC11, matrixToMultivector[{IdentityMatrix[5], "contra"}]];
 
 (*Meantone⋏Porcupine = <176/175>*)
-progressiveProduct[meantoneM11, porcupineM11] == matrixToMultivector[dual[{{valinorsma11}, "contra"}]]
+test2args[progressiveProduct, meantoneM11, porcupineM11, matrixToMultivector[dual[{{valinorsma11}, "contra"}]]];
 
 (*In the 7-limit, that become Meantone⋎Porcupine = <JI>, Meantone⋏Porcupine = <1>*)
-progressiveProduct[meantoneC7, porcupineC7] == matrixToMultivector[{IdentityMatrix[4], "contra"}]
-progressiveProduct[meantoneM7, porcupineM7] == matrixToMultivector[{IdentityMatrix[4], "co"}]
+test2args[progressiveProduct, meantoneC7, porcupineC7, matrixToMultivector[{IdentityMatrix[4], "contra"}]];
+test2args[progressiveProduct, meantoneM7, porcupineM7, matrixToMultivector[{IdentityMatrix[4], "co"}]];
 
 (*Miracle⋎Magic = 41 *)
-progressiveProduct[miracleC11, magicC11] == et41C11
+test2args[progressiveProduct, miracleC11, magicC11, et41C11];
 
 (*Miracle⋏Magic = Marvel *)
-progressiveProduct[miracleM11, magicM11] == marvelM11
+test2args[progressiveProduct, miracleM11, magicM11, marvelM11];
 
 (*In the 7-limit, again Miracle⋎Magic = 41, Miracle⋏Magic = Marvel*)
-progressiveProduct[miracleC7, magicC7] == et41C7
-progressiveProduct[miracleM7, magicM7] == marvelM7
+test2args[progressiveProduct, miracleC7, magicC7, et41C7];
+test2args[progressiveProduct, miracleM7, magicM7, marvelM7];
 
 (*Miracle⋎Mothra = 31 *)
-progressiveProduct[miracleC11, mothraC11] == et31C11
+test2args[progressiveProduct, miracleC11, mothraC11, et31C11];
 
 (* Miracle⋏Mothra = Portent *)
-progressiveProduct[miracleM11, mothraM11] == portentM11
+test2args[progressiveProduct, miracleM11, mothraM11, portentM11];
 
 (*In the 7-limit, Miracle⋏Mothra = Gamelan.*)
-progressiveProduct[miracleM7, mothraM7] == gamelanM7
+test2args[progressiveProduct, miracleM7, mothraM7, gamelanM7];
 
 (*Meantone⋎Magic = <JI>,*)
-progressiveProduct[meantoneC11, magicC11] == matrixToMultivector[{IdentityMatrix[5], "contra"}]
+test2args[progressiveProduct, meantoneC11, magicC11, matrixToMultivector[{IdentityMatrix[5], "contra"}]];
 
 (*Meantone⋏Magic = <225/224>*)
-progressiveProduct[meantoneM11, magicM11] == matrixToMultivector[dual[{{marvelComma11}, "contra"}]]
+test2args[progressiveProduct, meantoneM11, magicM11, matrixToMultivector[dual[{{marvelComma11}, "contra"}]]];
 
 
 
@@ -465,7 +500,7 @@ test[veaGetV, {{1, 4, 4}, 2, "co"}, "co"];
 (* DUAL *)
 
 (* multivectorToTensor *)
-test[multivectorToTensor, {{1, 4, 4}, 2, "co"}, {{0, 1, 4}, {-1, 0, 4}, {-4, -4, 0}}];
+test[multivectorToTensor, {{1, 4, 4}, 2, "co"}, Symmetrize[{{0, 1, 4}, {-1, 0, 4}, {-4, -4, 0}}, Antisymmetric[{1, 2}]]];
 
 (* tensorToMultivector *)
 tensorToMultivectorTester[{minors_, v_, grade_, d_}] := {minors, v, grade, d} == Module[{},
@@ -488,17 +523,31 @@ test[minorsList, {{17, 16, -4}, {4, -4, 1}}, {-4, 1, 0}];
 (* MEET AND JOIN *)
 
 (* a basic right interior product example, with grade of a > b, and a being contra *)
-rightInteriorProduct[d3g2contra1, d3g1co1] == d3g1contra1
-(* TODO: a weird right interior product example, with grade of a = b, and a being contra *)
-(* TODO: a weird right interior product example, with grade of a < b, and a being contra *)
-(* TODO: repeat all that but for a being co *)
+test2args[rightInteriorProduct, d3g2contra1, d3g1co1, d3g1contra1];
+(* a weird right interior product example, with grade of a = b, and a being contra; works the same as above, may bottom out *)
+test2args[rightInteriorProduct, d3g1contra1, d3g1co2, d3g1contra1];
+(*a weird right interior product example, with grade of a < b, and a being contra, should bottom out grade of 0 and contra *)
+test2args[rightInteriorProduct, d3g1contra1, d3g2co2, d3jicontra];
+
+(* a basic right interior product example, with grade of a > b, and a being co *)
+test2args[rightInteriorProduct, d3g2co1, d3g1contra2, d3g1co2];
+(*a weird right interior product example, with grade of a = b, and a being co, works the same as above, may bottom out *)
+test2args[rightInteriorProduct, d3g1co1, d3g1contra2, d3unisonco];
+(* a weird right interior product example, with grade of a < b, and a being co, should bottom out grade of 0 and co *)
+test2args[rightInteriorProduct, d3g1co1, d3g2contra1, d3unisonco];
 
 (* a basic left interior product example, with grade of b > a, and b contra *)
-leftInteriorProduct[d3g1co1, d3g2contra1] == d3g1contra1
-(* TODO:a weird left interior product example, with grade of b = a, and b contra *)
-(* TODO:a weird left interior product example, with grade of b < a, and b contra *)
-(* TODO: repeat all that but for b being co *)
-
+test2args[leftInteriorProduct, d3g1co1, d3g2contra1, d3g1contra1];
+(* a weird left interior product example, with grade of b = a, and b contra, works the same as above, may bottom out *)
+test2args[leftInteriorProduct, d3g1co1, d3g1contra2, d3jicontra];
+(* a weird left interior product example, with grade of b < a, and b contra, should bottom out at grade of 0 and contra *)
+test2args[leftInteriorProduct, d3g2co1, d3g1contra2, d3jicontra];
+(* a basic left interior product example, with grade of b > a, and b co *)
+test2args[leftInteriorProduct, d3g1contra2, d3g2co1, d3g1co2];
+(* a weird left interior product example, with grade of b = a, and b co, works the same as above, may bottom out *)
+test2args[leftInteriorProduct, d3g1contra1, d3g1co2, d3g1co2];
+(* a weird left interior product example, with grade of b < a, and b co, should bottom out at grade of 0 and co *)
+test2args[leftInteriorProduct, d3g2contra1, d3g1co1, d3unisonco];
 
 
 

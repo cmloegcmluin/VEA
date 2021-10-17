@@ -223,9 +223,13 @@ Out   {{1, 4, 4}, 2, "co"}
 
 *)
 progressiveProduct[w1_, w2_] := If[
-  isContra[w1],
-  matrixToMultivector[meet[{multivectorToMatrix[w1], multivectorToMatrix[w2]}]],
-  matrixToMultivector[join[{multivectorToMatrix[w1], multivectorToMatrix[w2]}]],
+  veaGetV[w1] != veaGetV[w2],
+  Error,
+  If[
+    isContra[w1],
+    matrixToMultivector[meet[multivectorToMatrix[w1], multivectorToMatrix[w2]]],
+    matrixToMultivector[join[multivectorToMatrix[w1], multivectorToMatrix[w2]]],
+  ]
 ];
 
 (*
@@ -245,7 +249,15 @@ In    et5 = {{5, 8, 12}, 1, "co"};
 Out   {{1, 4, 4}, 2, "co"}
 
 *)
-regressiveProduct[w1_, w2_] := veaDual[progressiveProduct[veaDual[w1], veaDual[w2]]];
+regressiveProduct[w1_, w2_] := Module[{dualW},
+  dualW = progressiveProduct[veaDual[w1], veaDual[w2]];
+
+  If[
+    dualW === Error,
+    Error,
+    veaDual[dualW]
+  ]
+];
 
 (*
 
@@ -454,5 +466,21 @@ minorsList[a_] := extractGcd[First[Minors[a, MatrixRank[a]]]];
 
 (* MEET AND JOIN *)
 
-rightInteriorProduct[w1_, w2_] := veaDual[progressiveProduct[veaDual[w1], w2]];
-leftInteriorProduct[w1_, w2_] := veaDual[progressiveProduct[w1, veaDual[w2]]];
+rightInteriorProduct[w1_, w2_] := Module[{dualW},
+  dualW = progressiveProduct[veaDual[w1], w2];
+
+  If[
+    dualW === Error,
+    Error,
+    veaDual[dualW]
+  ]
+];
+leftInteriorProduct[w1_, w2_] := Module[{dualW},
+  dualW = progressiveProduct[w1, veaDual[w2]];
+
+  If[
+    dualW === Error,
+    Error,
+    veaDual[dualW]
+  ]
+];
