@@ -106,9 +106,13 @@ Out   {{4, -4, 1}, 1, "contra"}
 
 *)
 veaCanonicalForm[w_] := If[
-  isInvalid[w],
-  Error,
-  validVeaCanonicalForm[w]
+  allZerosL[getMinors[w]],
+  w,
+  If[
+    isInvalid[w],
+    Error,
+    validVeaCanonicalForm[w]
+  ]
 ];
 
 
@@ -222,13 +226,26 @@ In    et5 = {{5, 8, 12}, 1, "co"};
 Out   {{1, 4, 4}, 2, "co"}
 
 *)
-progressiveProduct[w1_, w2_] := If[
-  veaGetV[w1] != veaGetV[w2],
-  Error,
+progressiveProduct[w1_, w2_] := Module[{grade1, grade2,grade,d, v1, v2,v},
+  grade1 = getGrade[w1];
+  grade2 = getGrade[w2];
+  grade =  grade1 +  grade2;
+  d = veaGetD[w1];
+  v1 = veaGetV[w1];
+  v2 =  veaGetV[w2];
+  v = If[v1 != v2, Error, v1];
+
   If[
-    isContra[w1],
-    matrixToMultivector[meet[multivectorToMatrix[w1], multivectorToMatrix[w2]]],
-    matrixToMultivector[join[multivectorToMatrix[w1], multivectorToMatrix[w2]]],
+    v === Error || grade > d ,
+    Error,
+    veaCanonicalForm[
+      tensorToMultivector[
+        TensorWedge[multivectorToTensor[w1], multivectorToTensor[w2]],
+        grade,
+        v1,
+        d
+      ]
+    ]
   ]
 ];
 
@@ -424,12 +441,18 @@ multivectorToTensor[w_] := Module[{d, grade, minors},
   ]
 ];
 
-tensorToMultivector[tensor_, grade_, v_, d_] := Module[{assoc, signTweak, minors},
-  assoc = Association[SymmetrizedArrayRules[tensor]];
-  signTweak = If[veaIsCo[{{}, v, grade, d}] && Mod[grade(d - grade), 2] == 1, -1, 1];
-  minors = signTweak * Map[If[KeyExistsQ[assoc, #], assoc[#], 0]&, veaIndices[d, grade]];
+tensorToMultivector[tensor_, grade_, v_, d_] := Module[{rules , assoc, signTweak, minors},
+  rules = SymmetrizedArrayRules[tensor];
 
-  {minors, grade, v}
+  If[
+    allZerosL[Map[Last, rules]],
+    {Table[0, Binomial[d, grade]], grade, v},
+    assoc = Association[rules];
+    signTweak = If[veaIsCo[{{}, v, grade, d}] && Mod[grade(d - grade), 2] == 1, -1, 1];
+    minors = signTweak * Map[If[KeyExistsQ[assoc, #], assoc[#], 0]&, veaIndices[d, grade]];
+
+    {minors, grade, v}
+  ]
 ];
 
 
